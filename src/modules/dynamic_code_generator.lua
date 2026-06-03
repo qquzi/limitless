@@ -1,39 +1,58 @@
 local DynamicCodeGenerator = {}
--- TODO : make it work (fuh no)
+
+-- check if string is pure number
+local function isNumber(str)
+    return tonumber(str) ~= nil
+end
+
+-- literals eval
+local function safeEval(block)
+    block = block:gsub("^%s+", ""):gsub("%s+$", "")
+
+    -- numbers only
+    if isNumber(block) then
+        return tonumber(block)
+    end
+
+    -- allow simple string literals
+    if block:match("^'.*'$") or block:match('^".*"$') then
+        return block:sub(2, -2)
+    end
+
+    return nil
+end
+
 function DynamicCodeGenerator.process(code)
-    local function dynamicWrapper(block)
-        local func, err = load("return " .. block)
-        if not func then
-            error("Failed to load block: " .. err)
-        end
-        return func()
-    end
+    local output = {}
+    local buffer = ""
 
-    local processed_code = {}
-    local position = 1
+    local function flushBuffer()
+        if buffer ~= "" then
+            local result = safeEval(buffer)
 
-    while position <= #code do
-        local next_position = code:find("[%s%p]", position)
-        if not next_position then
-            next_position = #code + 1
-        end
-        local block = code:sub(position, next_position - 1)
-        if #block > 0 then
-            local success, result = pcall(dynamicWrapper, block)
-            if success then
-                table.insert(processed_code, tostring(result))
+            if result ~= nil then
+                table.insert(output, tostring(result))
             else
-                error("Error processing block '" .. block .. "': " .. result)
+                -- keep original if not safely evaluable
+                table.insert(output, buffer)
             end
-        end
-        if next_position <= #code then
-            table.insert(processed_code, code:sub(next_position, next_position))
-        end
 
-        position = next_position + 1
+            buffer = ""
+        end
     end
 
-    return table.concat(processed_code)
+    for token in code:gmatch(".") do
+        if token:match("[%s%p]") then
+            flushBuffer()
+            table.insert(output, token)
+        else
+            buffer = buffer .. token
+        end
+    end
+
+    flushBuffer()
+
+    return table.concat(output)
 end
 
 return DynamicCodeGenerator
