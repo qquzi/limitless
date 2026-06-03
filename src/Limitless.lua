@@ -2,6 +2,7 @@
 
 local Pipeline = require("pipeline")
 local config = require("config")
+local PRODUCT_NAME = "Limitless"
 -- utils
 
 local function filesize(file)
