@@ -97,7 +97,7 @@ local function printCliResult(input, output, time, options)
     local line = colors.white .. string.rep("═", 65) .. colors.reset
     print("\n" .. line)
     print(BANNER)
-    print(colors.white .. "Obfuscation Complete!" .. colors.reset)
+    print(colors.white .. PRODUCT_NAME .. "Obfuscation Complete!" .. colors.reset)
     print(colors.white .. "Details:" .. colors.reset)
     print(line)
     print(colors.white .. "Time Taken        : " .. string.format("%.2f", time) .. " seconds" .. colors.reset)
@@ -127,8 +127,7 @@ local function printCliResult(input, output, time, options)
             print(colors.white .. options.sanity_info.expected .. colors.reset)
             print(colors.yellow .. "\nGot output:" .. colors.reset)
             print(colors.white .. options.sanity_info.got .. colors.reset)
-            print(colors.red .. "Please dm 'zeusssz_' on Discord with with the file, or make an issue on the GitHub" .. colors.reset)
-            print(colors.red .. "You may also join the Discord Server using the invite link" .. colors.reset)
+           print(colors.red .. "Review the generated output and current configuration." .. colors.reset)
         else
             print(colors.green .. "Sanity Check      : Passed" .. colors.reset)
         end
@@ -194,7 +193,7 @@ local function applyPreset(level)
 end
 
 local function printUsage()
-    print(colors.white .. "Usage: " .. colors.reset .. colors.cyan .. "./hercules.lua *.lua (+ any options)" .. colors.reset)
+    print(colors.white .. "Usage: " .. colors.reset .. colors.cyan .. "./limitless.lua *.lua (+ any options)" .. colors.reset)
     print(colors.white .. "\nOptional Presets:" .. colors.reset)
     print(colors.cyan .. "--min" .. string.rep(" ", 17) .. colors.green .. "Minimal parameters for lighter obfuscation" .. colors.reset)
     print(colors.cyan .. "--mid" .. string.rep(" ", 17) .. colors.green .. "Moderate parameters for balanced obfuscation" .. colors.reset)
