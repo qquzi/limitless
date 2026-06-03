@@ -1,87 +1,97 @@
+-- using ai cuz im lazy
 local GarbageCodeInserter = {}
 
-local LOWERCASE_A, LOWERCASE_Z = 97, 122
-local MAX_RANDOM_NUMBER = 100
-local MAX_LOOP_COUNT = 10
-local VARIABLE_NAME_LENGTH = 6
+local LOWER_A, LOWER_Z = 97, 122
+local MAX_NUM = 100
+local MAX_LOOP = 8
+local VAR_LEN = 6
 
-local function generateRandomVariableName()
-    local name = {}
-    for i = 1, VARIABLE_NAME_LENGTH do
-        table.insert(name, string.char(math.random(LOWERCASE_A, LOWERCASE_Z)))
+local function randName()
+    local t = {}
+    for _ = 1, VAR_LEN do
+        t[#t+1] = string.char(math.random(LOWER_A, LOWER_Z))
     end
-    return table.concat(name)
+    return table.concat(t)
 end
 
-local function generateRandomNumber(max)
-    return math.random(1, max or MAX_RANDOM_NUMBER)
+local function randNum(max)
+    return math.random(1, max or MAX_NUM)
 end
 
-local code_types = {
-    variable = function()
-        return string.format("local %s = %d", generateRandomVariableName(), generateRandomNumber())
-    end,
-    while_loop = function()
-        return string.format("while %s do local _ = %d break end",
-            tostring(math.random() > 0.5),
-            generateRandomNumber(100)
-        )
-    end,
-    for_loop = function()
-        return string.format("for %s = 1, %d do local _ = %d end",
-            generateRandomVariableName(),
-            generateRandomNumber(MAX_LOOP_COUNT),
-            generateRandomNumber()
-        )
-    end,
-    if_statement = function()
-        return string.format("if %s then local _ = %d end",
-            tostring(math.random() > 0.5),
-            generateRandomNumber()
-        )
-    end,
-    function_def = function()
-        return string.format("local function %s(%s) local _ = %d end",
-            generateRandomVariableName(),
-            generateRandomVariableName(),
-            generateRandomNumber()
-        )
-    end
+local function deadMath()
+    local a, b = randNum(), randNum()
+    return string.format("local %s = %d * %d - %d + %d",
+        randName(), a, b, a, b
+    )
+end
+
+local function deadBranch()
+    return string.format([[
+if (%d > %d and %d < %d) then
+    local %s = %d
+else
+    local %s = %d
+end
+]], randNum(), randNum(), randNum(), randNum(),
+randName(), randNum(), randName(), randNum())
+end
+
+local function deadLoop()
+    local var = randName()
+    return string.format([[
+for %s = 1, %d do
+    local %s = %d
+end
+]], var, randNum(MAX_LOOP), randName(), randNum())
+end
+
+local function deadFunction()
+    return string.format([[
+local function %s(%s)
+    local %s = %d
+    return %s
+end
+]], randName(), randName(), randName(), randNum(), randNum())
+end
+
+local generators = {
+    deadMath,
+    deadBranch,
+    deadLoop,
+    deadFunction
 }
 
-local code_type_keys = {}
-for k in pairs(code_types) do table.insert(code_type_keys, k) end
-
-local function generateRandomCode()
-    return code_types[code_type_keys[math.random(#code_type_keys)]]()
+local function pick()
+    return generators[math.random(#generators)]()
 end
 
-local function generateGarbage(blocks, sep)
-    sep = sep or "\n"
-    local garbage_code = {}
-    for i = 1, blocks do
-        local code = generateRandomCode()
-        if not code:match("while true") and not code:match("for %w+ = %d+, %d+ do local _ = %d+ end") then
-            table.insert(garbage_code, code)
-        end
+local function generateGarbage(count)
+    local out = {}
+    for _ = 1, count do
+        out[#out+1] = pick()
     end
-    return table.concat(garbage_code, sep)
+    return table.concat(out, "\n")
 end
 
 function GarbageCodeInserter.process(code, garbage_blocks)
     if type(code) ~= "string" or #code == 0 then
-        error("Input code must be a non-empty string", 2)
+        error("Invalid code input", 2)
     end
-    if type(garbage_blocks) ~= "number" then
-        error("garbage_blocks must be a number", 2)
-    end
-    local prefix_garbage = generateGarbage(garbage_blocks)
-    local suffix_garbage = generateGarbage(garbage_blocks)
-    return table.concat({prefix_garbage, code, suffix_garbage}, "\n")
+
+    garbage_blocks = garbage_blocks or 5
+
+    local prefix = generateGarbage(garbage_blocks)
+    local suffix = generateGarbage(garbage_blocks)
+
+    return table.concat({
+        prefix,
+        code,
+        suffix
+    }, "\n")
 end
 
 function GarbageCodeInserter.setSeed(seed)
-    math.randomseed(seed)
+    math.randomseed(seed or os.clock() * 1e6)
 end
 
 return GarbageCodeInserter
