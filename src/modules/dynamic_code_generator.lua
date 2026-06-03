@@ -1,5 +1,5 @@
 local DynamicCodeGenerator = {}
--- TODO : make it work
+-- TODO : make it work (fuh no)
 function DynamicCodeGenerator.process(code)
     local function dynamicWrapper(block)
         local func, err = load("return " .. block)
