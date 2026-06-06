@@ -17,10 +17,17 @@ app.post('/api/obfuscate', (req, res) => {
     const inputPath = path.join(__dirname, `temp_input_${timestamp}.lua`);
     const outputPath = path.join(__dirname, `temp_output_${timestamp}.lua`);
    
+    // Dynamically checks and supports common naming variants
+    let luaScriptFilename = 'Limitless.lua';
+    if (fs.existsSync(path.join(__dirname, 'limitless.lua'))) luaScriptFilename = 'limitless.lua';
+    if (fs.existsSync(path.join(__dirname, 'main.lua'))) luaScriptFilename = 'main.lua';
+   
+    const scriptPath = path.join(__dirname, luaScriptFilename);
+
     fs.writeFile(inputPath, code, (err) => {
         if (err) return res.status(500).json({ error: 'Failed to create temp input file' });
 
-        exec(`lua limitless.lua "${inputPath}" "${outputPath}"`, (execErr, stdout, stderr) => {
+        exec(`lua "${scriptPath}" "${inputPath}" "${outputPath}"`, (execErr, stdout, stderr) => {
             fs.readFile(outputPath, 'utf8', (readErr, obfuscatedCode) => {
                 fs.unlink(inputPath, () => {});
                 fs.unlink(outputPath, () => {});
