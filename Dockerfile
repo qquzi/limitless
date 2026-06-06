@@ -1,19 +1,19 @@
 FROM node:18-bullseye-slim
 
 RUN apt-get update && apt-get install -y \
-    curl \
+    git \
     build-essential \
     make \
-    git \
     && rm -rf /var/lib/apt/lists/*
 
-RUN curl -L https://luajit.org | tar xz \
-    && cd LuaJIT-2.1.0-beta3 \
+# Clone and compile LuaJIT straight from the official source mirror repo
+RUN git clone --depth 1 https://github.com \
+    && cd luajit \
     && make \
     && make install \
     && ln -sf /usr/local/bin/luajit /usr/local/bin/lua \
     && cd .. \
-    && rm -rf LuaJIT-2.1.0-beta3
+    && rm -rf luajit
 
 WORKDIR /app
 
