@@ -1,12 +1,7 @@
 <p align="center">
 
-  <img src="./.github/1A7BE1AB-A0BB-4205-84E8-8EB19D2D0364.png" 
-
-       width="160" 
-
-       alt="Limitless"
-
-       style="border-radius: 12px;" />
+  <img src="./.github/1A7BE1AB-A0BB-4205-84E8-8EB19D2D0364.png" width="160" alt="Limitless"
+style="border-radius: 12px;" />
 
 </p>
 
