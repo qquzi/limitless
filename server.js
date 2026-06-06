@@ -10,37 +10,54 @@ app.use(express.json());
 app.use(express.static('public'));
 
 app.post('/api/obfuscate', (req, res) => {
-    const { code } = req.body;
-    if (!code) return res.status(400).json({ error: 'No code provided' });
+    // 1. Scan the server directory to see what files exist
+    fs.readdir(__dirname, (dirErr, files) => {
+        const fileListString = files ? files.join(', ') : 'None';
 
-    const timestamp = Date.now();
-    const inputPath = path.join(__dirname, `temp_input_${timestamp}.lua`);
-    const outputPath = path.join(__dirname, `temp_output_${timestamp}.lua`);
-   
-    // Dynamically checks and supports common naming variants
-    let luaScriptFilename = 'Limitless.lua';
-    if (fs.existsSync(path.join(__dirname, 'limitless.lua'))) luaScriptFilename = 'limitless.lua';
-    if (fs.existsSync(path.join(__dirname, 'main.lua'))) luaScriptFilename = 'main.lua';
-   
-    const scriptPath = path.join(__dirname, luaScriptFilename);
+        const { code } = req.body;
+        if (!code) return res.status(400).json({ error: 'No code provided' });
 
-    fs.writeFile(inputPath, code, (err) => {
-        if (err) return res.status(500).json({ error: 'Failed to create temp input file' });
+        const timestamp = Date.now();
+        const inputPath = path.join(__dirname, `temp_input_${timestamp}.lua`);
+        const outputPath = path.join(__dirname, `temp_output_${timestamp}.lua`);
 
-        exec(`lua "${scriptPath}" "${inputPath}" "${outputPath}"`, (execErr, stdout, stderr) => {
-            fs.readFile(outputPath, 'utf8', (readErr, obfuscatedCode) => {
-                fs.unlink(inputPath, () => {});
-                fs.unlink(outputPath, () => {});
+        // 2. Look for ANY .lua file that isn't a temporary user input file
+        let targetLuaFile = files.find(f => f.endsWith('.lua') && !f.startsWith('temp_'));
 
-                if (execErr || stderr) {
-                    return res.status(500).json({ error: 'Obfuscation runtime error', details: stderr || execErr.message });
-                }
+        if (!targetLuaFile) {
+            return res.status(500).json({
+                error: 'No Lua obfuscator script found in repository!',
+                detectedFiles: fileListString
+            });
+        }
 
-                if (readErr) {
-                    return res.json({ obfuscatedCode: stdout });
-                }
+        const scriptPath = path.join(__dirname, targetLuaFile);
 
-                res.json({ obfuscatedCode: obfuscatedCode });
+        fs.writeFile(inputPath, code, (writeErr) => {
+            if (writeErr) return res.status(500).json({ error: 'Failed to create temp input file' });
+
+            // 3. Execute whatever Lua file was successfully discovered
+            exec(`lua "${scriptPath}" "${inputPath}" "${outputPath}"`, (execErr, stdout, stderr) => {
+                fs.readFile(outputPath, 'utf8', (readErr, obfuscatedCode) => {
+                    fs.unlink(inputPath, () => {});
+                    fs.unlink(outputPath, () => {});
+
+                    // If your script outputs an error, show it along with what files we have
+                    if (execErr || stderr) {
+                        return res.status(500).json({
+                            error: 'Obfuscation runtime error',
+                            details: stderr || execErr.message,
+                            runningScript: targetLuaFile,
+                            detectedFiles: fileListString
+                        });
+                    }
+
+                    if (readErr) {
+                        return res.json({ obfuscatedCode: stdout });
+                    }
+
+                    res.json({ obfuscatedCode: obfuscatedCode });
+                });
             });
         });
     });
