@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Limitless Lua Obfuscator</title>
+    <style>
+        body { background: #121212; color: #fff; font-family: sans-serif; padding: 40px; margin: 0; }
+        h1 { text-align: center; color: #ff4500; font-size: 2.5rem; margin-bottom: 30px; }
+        .container { display: flex; gap: 20px; max-width: 1200px; margin: 0 auto; flex-wrap: wrap; }
+        .box { flex: 1; min-width: 300px; }
+        h3 { margin-bottom: 10px; color: #aaa; }
+        textarea { width: 100%; height: 450px; background: #1e1e1e; color: #00ff00; border: 1px solid #333; font-family: monospace; padding: 15px; box-sizing: border-box; border-radius: 6px; resize: none; font-size: 14px; }
+        textarea:focus { border-color: #ff4500; outline: none; }
+        .btn-container { width: 100%; text-align: center; margin-top: 25px; }
+        button { background: #ff4500; color: white; padding: 14px 35px; border: none; cursor: pointer; font-weight: bold; font-size: 16px; border-radius: 4px; transition: background 0.2s; }
+        button:hover { background: #ff5722; }
+        button:disabled { background: #555; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+    <h1>Limitless Lua Obfuscator</h1>
+   
+    <div class="container">
+        <div class="box">
+            <h3>Input Source Code</h3>
+            <textarea id="input" placeholder="Paste your raw Lua script here..."></textarea>
+        </div>
+        <div class="box">
+            <h3>Obfuscated Output</h3>
+            <textarea id="output" readonly placeholder="Your protected script will appear here..."></textarea>
+        </div>
+    </div>
+   
+    <div class="btn-container">
+        <button id="obfuscate-btn" onclick="processCode()">Obfuscate Script</button>
+    </div>
+
+    <script>
+        async function processCode() {
+            const codeInput = document.getElementById('input').value;
+            const outputArea = document.getElementById('output');
+            const btn = document.getElementById('obfuscate-btn');
+
+            if (!codeInput.trim()) {
+                alert("Please enter some Lua code first!");
+                return;
+            }
+
+            outputArea.value = "Processing encryption via Limitless...";
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/api/obfuscate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: codeInput })
+                });
+               
+                const data = await response.json();
+               
+                if (data.error) {
+                    outputArea.value = "Error: " + (data.details || data.error);
+                } else {
+                    outputArea.value = data.obfuscatedCode;
+                }
+            } catch (err) {
+                outputArea.value = "Connection to server failed.";
+            } finally {
+                btn.disabled = false;
+            }
+        }
+    </script>
+
+</body>
+</html>
