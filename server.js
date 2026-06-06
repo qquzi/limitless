@@ -20,7 +20,7 @@ app.post('/api/obfuscate', (req, res) => {
     fs.writeFile(inputPath, code, (err) => {
         if (err) return res.status(500).json({ error: 'Failed to create temp input file' });
 
-        exec(`lua Limitless.lua "${inputPath}" "${outputPath}"`, (execErr, stdout, stderr) => {
+        exec(`lua limitless.lua "${inputPath}" "${outputPath}"`, (execErr, stdout, stderr) => {
             fs.readFile(outputPath, 'utf8', (readErr, obfuscatedCode) => {
                 fs.unlink(inputPath, () => {});
                 fs.unlink(outputPath, () => {});
