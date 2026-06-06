@@ -1,5 +1,5 @@
 local bit = require("modules/Compiler/bit")
-_G.UsedOps = {}
+local UsedOps = {}
 if not table.create then
 	function table.create(_)
 		return {}
@@ -317,32 +317,40 @@ local function cst_flt_rdr(len, func)
 		return flt
 	end
 end;
+
+local OPCODES = {}
+for i = 0, 37 do
+	OPCODES[i] = {
+		Type = OPCODE_T[i],
+		Mode = OPCODE_M[i]
+	}
+end
 local function stm_inst_list(S)
 	local len = S:s_int()
 	local list = table.create(len)
 	for i = 1, len do
 		local ins = S:s_ins()
 		local op = bit.band(ins, 63)
-		local args = OPCODE_T[op]
-		local mode = OPCODE_M[op]
+		local desc = OPCODES[op]
 		local data = {
+			Id = i,
 			Value = ins,
 			Enum = op,
-			Type = args,
-			Mode = mode,
-			A = bit.band(bit.rshift(ins, 6), 255)
+			Type = desc.Type,
+			Mode = desc.Mode,
+			A = bit.band(bit.rshift(ins, 6), 255),
+			Next = i + 1
 		}
-		if args == 'ABC' then
+		if desc.Type == 'ABC' then
 			data.B = bit.band(bit.rshift(ins, 23), 511)
 			data.C = bit.band(bit.rshift(ins, 14), 511)
-		elseif args == 'ABx' then
+		elseif desc.Type == 'ABx' then
 			data.Bx = bit.band(bit.rshift(ins, 14), 262143)
-		elseif args == 'AsBx' then
+		elseif desc.Type == 'AsBx' then
 			data.sBx = bit.band(bit.rshift(ins, 14), 262143) - 131071
+			data.Target = i + 1 + data.sBx
 		end;
-		if not _G.UsedOps[op] then
-			_G.UsedOps[op] = op
-		end;
+		UsedOps[op] = true
 		list[i] = data
 	end;
 	return list
@@ -360,7 +368,10 @@ local function stm_const_list(S)
 		elseif tt == 4 then
 			k = stm_lstring(S)
 		end;
-		list[i] = k
+		list[i] = {
+			Type = tt,
+			Value = k
+		}
 	end;
 	return list
 end;
@@ -400,12 +411,30 @@ local function stm_upval_list(S)
 	end;
 	return list
 end;
+local function BuildCFG(proto)
+	local cfg = {}
+	for i, ins in ipairs(proto.Instructions) do
+		cfg[i] = {
+			Id = i,
+			Instruction = ins,
+			Successors = {}
+		}
+		if ins.Target then
+			table.insert(cfg[i].Successors, ins.Target)
+		end;
+		if proto.Instructions[i + 1] then
+			table.insert(cfg[i].Successors, i + 1)
+		end;
+	end;
+	return cfg
+end;
+
 function stm_lua_func(S, psrc)
 	local proto = {}
 	local src = stm_lstring(S) or psrc;
 	proto.SourceName = src;
-	S:s_int()
-	S:s_int()
+	proto.FirstLine = S:s_int()
+	proto.LastLine = S:s_int()
 	proto.Upvals = stm_byte(S)
 	proto.Parameters = stm_byte(S)
 	stm_byte(S)
@@ -413,9 +442,17 @@ function stm_lua_func(S, psrc)
 	proto.Instructions = stm_inst_list(S)
 	proto.Constants = stm_const_list(S)
 	proto.Protos = stm_sub_list(S, src)
-	stm_line_list(S)
-	stm_loc_list(S)
-	stm_upval_list(S)
+	proto.Debug = {
+		Lines = stm_line_list(S),
+		Locals = stm_loc_list(S),
+		UpvalueNames = stm_upval_list(S)
+	}
+	proto.CFG = BuildCFG(proto)
+	proto.Metadata = {
+		InstructionCount = #proto.Instructions,
+		ConstantCount = #proto.Constants,
+		ProtoCount = #proto.Protos
+	}
 	return proto
 end;
 function Deserialize(src)
