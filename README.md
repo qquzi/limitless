@@ -1,8 +1,9 @@
 <p align="center">
-  <img src="./.github/1A7BE1AB-A0BB-4205-84E8-8EB19D2D0364.png" 
-       width="160" 
-       alt="Limitless"
-       style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.25);" />
+  <span style="display:inline-block; border-radius:12px; overflow:hidden;">
+    <img src="./.github/1A7BE1AB-A0BB-4205-84E8-8EB19D2D0364.png"
+         width="160"
+         alt="Limitless" />
+  </span>
 </p>
 
 </p>
