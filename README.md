@@ -1,6 +1,8 @@
 <p align="center">
 
-  <img src="./1A7BE1AB-A0BB-4205-84E8-8EB19D2C0364.png" width="128" alt="Limitless">
+  <img src="./.github/logo.png" width="128" alt="Limitless">
+
+</p>
 
 </p>
 
