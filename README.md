@@ -72,7 +72,7 @@ Limitless is still in development. It is based on Hercules. Limitless is current
 
 1. Clone this repository (alternatively, install the ZIP file):
     ```bash
-    git clone https://github.com/zeusssz/limitless.git
+    git clone https://github.com/qquzi/limitless.git
     cd limitless/src
     ```
 
