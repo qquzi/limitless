@@ -1,10 +1,4 @@
-<p align="center">
-  <span style="display:inline-block; border-radius:12px; overflow:hidden;">
-    <img src="./.github/1A7BE1AB-A0BB-4205-84E8-8EB19D2D0364.png"
-         width="160"
-         alt="Limitless" />
-  </span>
-</p>
+<img width="1254" height="1254" alt="Image" src="https://github.com/user-attachments/assets/185a661a-bafa-499f-adbd-5af3f364bba3" />
 
 </p>
 
