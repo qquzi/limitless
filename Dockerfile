@@ -1,19 +1,10 @@
-FROM node:18-bullseye-slim
+FROM alpine:3.18
 
-RUN apt-get update && apt-get install -y \
-    git \
-    build-essential \
-    make \
-    && rm -rf /var/lib/apt/lists/*
-
-# Clone and compile LuaJIT straight from the official source mirror repo
-RUN git clone --depth 1 https://github.com \
-    && cd luajit \
-    && make \
-    && make install \
-    && ln -sf /usr/local/bin/luajit /usr/local/bin/lua \
-    && cd .. \
-    && rm -rf luajit
+RUN apk add --no-cache \
+    luajit \
+    nodejs \
+    npm \
+    bash
 
 WORKDIR /app
 
@@ -21,6 +12,9 @@ COPY package*.json ./
 RUN npm install
 
 COPY . .
+
+# Link Luajit explicitly to the standard lua binary alias
+RUN ln -sf /usr/bin/luajit /usr/bin/lua
 
 EXPOSE 3000
 
